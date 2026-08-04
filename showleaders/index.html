@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en" color-mode="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+      //https://ryanfeigenbaum.com/dark-mode/
+      // This code assumes a Light Mode default
+      if (
+          /* This condition checks whether the user has set a site preference for dark mode OR a OS-level preference for Dark Mode AND no site preference */
+          localStorage.getItem('color-mode') === 'dark' ||
+          (window.matchMedia('(prefers-color-scheme: dark)').matches &&
+          !localStorage.getItem('color-mode'))
+      ) {
+          // if true, set the site to Dark Mode
+          document.documentElement.setAttribute('color-mode', 'dark')
+      }
+    </script>
+    <link rel="canonical" href="https://gregstoll.com/baseballdivisionraces" />
+    <title>MLB Division Race Charts</title>
+    <style>
+        div.container {
+          max-width: 800px;
+        }
+        div.chart {
+          width: 100%;
+          height: 20%; /* TODO */
+        }
+        /* TODO extract this? */
+        /* https://www.geeksforgeeks.org/how-to-create-toggle-switch-by-using-html-and-css/ */
+        /* toggle in label designing */
+    .toggle {
+        position : relative ;
+        display : inline-block;
+        width : 40px;
+        height : 22px;
+        background-color: #cccccc;
+        background-color: var(--element3, #cccccc);
+        border-radius: 10px;
+        border: 2px solid gray;
+    }
+            
+    /* After slide changes */
+    .toggle:after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: gray;
+        /*top: 1px; */
+        /*left: 1px; */
+        transition:  all 0.5s;
+    }
+                
+    /* Checkbox cheked effect */
+    .checkbox:checked + .toggle::after {
+        left : 19px; 
+    }
+            
+    /* Checkbox cheked toggle label bg color */
+    .checkbox:checked + .toggle {
+        background-color: #262626;
+        background-color: var(--surface1, #262626);
+    }
+            
+    /* Checkbox vanished */
+    .checkbox { 
+        display : none;
+    }
+
+
+        /* TODO extract this */
+        
+        :root[color-mode="light"] {
+  --surface1: #e6e6e6;
+  --surface2: #f2f2f2;
+  --surface3: #ffffff;
+  --element1: #111111;
+  --element2: #222222;
+  --element3: #333333;
+  --elementInverse: #eee;
+  --primary: #01408e;
+  --secondary: #3c5d5c;
+  --tertiary: #fff7d6;
+  /*--box-shadow: 20px 20px 60px #cacaca, -20px -20px 60px #ffffff;*/
+}
+
+:root[color-mode="dark"] {
+  --surface1: #262626;
+  --surface2: #333333;
+  --surface3: #404040;
+  --element1: #eeeeee;
+  --element2: #dddddd;
+  --element3: #cccccc;
+  --elementInverse: #111;
+  --primary: #8fceff;
+  --secondary: #72faca;
+  --tertiary: #eee8a9;
+  /*--box-shadow: 20px 20px 60px #1d1d1d, -20px -20px 60px #272727;*/
+}
+
+body {
+  padding: 0;
+  margin: 0;
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.5;
+  background-color: #e6e6e6 !important;
+  background-color: var(--surface1, #e6e6e6) !important;
+}
+
+.color-mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* min-height: calc(100vh - 4rem); */
+  padding: 1rem 0.5rem;
+  margin: 0;
+}
+
+:root[color-mode="light"] .color-mode .light--hidden {
+  display: none;
+}
+
+:root[color-mode="dark"] .color-mode .dark--hidden {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .color-mode {
+    padding: 2rem;
+  }
+}
+
+/* TODO is this right? */
+.color-mode__section {
+  max-width: 640px;
+  padding: 0.5rem 1rem;
+  margin-bottom: 5rem;
+  color: #111111;
+  color: var(--element1, #111111);
+  background-color: #e6e6e6;
+  background-color: var(--surface1, #e6e6e6);
+  border-radius: var(--radius);
+  /*box-shadow: var(--box-shadow);*/
+  transition: all 0.2s ease-in;
+}
+
+.color-mode__header {
+  /*position: relative;*/
+  position: sticky;
+  top: 0px;
+  z-index: 1000;
+  background-color: #e6e6e6;
+  background-color: var(--surface1, #e6e6e6);
+  padding: 1rem 0;
+  border-radius: var(--radius);
+  display: flex;
+  justify-content: center;
+  align-content: center;
+}
+
+.color-mode__header:after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  content: "";
+  background: linear-gradient(to right, #01408e, #3c5d5c);
+  background: linear-gradient(to right, var(--primary, #01408e), var(--secondary, #3c5d5c));
+}
+
+.color-mode__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem;
+  /*margin: 0 auto 1.5rem; */
+  margin: 0 auto;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+  color: #111111;
+  color: var(--element1, #111111);
+  cursor: pointer;
+  background: none;
+  border: var(--elementInverse, #eeeeee);
+  border-width: 5px;
+  border-radius: var(--radius);
+  box-shadow: var(--box-shadow);
+}
+
+.color-mode__btn svg {
+  width: 30px;
+  height: 30px;
+  margin-left: 7px;
+  fill: none;
+  stroke: #222222;
+  stroke: var(--element2, #222222);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5px;
+}
+
+.color-mode__btn:hover svg,
+.color-mode__btn:focus svg, .color-mode__btn:focus {
+  outline: none;
+  fill: #fff7d6;
+  fill: var(--tertiary, #fff7d6);
+}
+
+#about {
+  align-self: flex-start;
+  max-width: 800px;
+}
+a:link {
+  color: #01408e;
+  color: var(--primary, #01408e);
+}
+a:visited {
+  color: #3c5d5c;
+  color: var(--secondary, #3c5d5c);
+}
+
+#yearSelect {
+  font-size: 1.5em;
+  margin-right: 10px;
+}
+
+@media only screen and (max-height: 480px) {
+  #yearSelect {
+    font-size: 1em;
+  }
+  .color-mode__header {
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+  }
+} 
+    </style>
+    <!--#include virtual="/bootstraphead.html"-->
+  </head>
+  <body>
+    <!--#include virtual="/navbar.html"-->
+    <svg style="display: none;">
+      <symbol viewBox="0 0 24 24" id="moon">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </symbol>
+      <symbol viewBox="0 0 24 24" id="sun">
+        <circle cx="12" cy="12" r="5"></circle>
+        <line x1="12" y1="1" x2="12" y2="3"></line>
+        <line x1="12" y1="21" x2="12" y2="23"></line>
+        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+        <line x1="1" y1="12" x2="3" y2="12"></line>
+        <line x1="21" y1="12" x2="23" y2="12"></line>
+        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+      </symbol>
+    </svg>
+    <div class="container color-mode color-mode__section">
+      <header class="color-mode__header">
+        <button
+          class="color-mode__btn light--hidden"
+          aria-label="Toggle light mode"
+        >
+          Toggle Light Mode
+          <svg aria-hidden="true">
+            <title>Light Mode</title>
+            <use href="#sun"></use>
+          </svg>
+        </button>
+        <button
+          class="color-mode__btn dark--hidden"
+          aria-label="Toggle dark mode"
+        >
+          Toggle Dark Mode
+          <svg aria-hidden="true">
+            <title>Dark Mode</title>
+            <use href="#moon"></use>
+          </svg>
+        </button>
+     </header>
+        <div style="width: 100%; text-align: center;">
+            <h1 style="display: inline-block;">MLB Triple Crown Leaders</h1>
+            <p><a href="#about">About this project</a></p>
+            <div id="charts">
+            </div>
+        </div>
+    <div id="about">
+      <!--<p><b>About this project:</b> This is a graph of each Major League Baseball team's games above or below .500.</p>
+      <p>Source files available <a href="https://github.com/gregstoll/baseballdivisionraces">on GitHub</a>. Here's a <a href="https://gregstoll.wordpress.com/2021/07/03/new-project-baseball-division-race-charts/">short writeup of the project</a>.</p>-->
+      <p><a href="/~gregstoll/baseball/">Baseball statistic calculators</a></p>
+    </div>
+    <!--#include virtual="/endOfBody.html"-->
+    </div>
+  </body>
+<
