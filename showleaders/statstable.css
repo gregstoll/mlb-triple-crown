@@ -1,6 +1,12 @@
 tr.otherLeader {
     font-weight: bold;
 }
+tr.otherLeader1 {
+    background-color: lightyellow;
+}
+tr.otherLeader2 {
+    background-color: lightcoral;
+}
 td {
     text-align: left;
 }

@@ -1,5 +1,43 @@
 "use strict"
 
+let TEAM_NAMES_TO_ABBREVS = new Map([
+    ["Houston Astros", "HOU"],
+    ["Athletics", "ATH"],
+    ["Seattle Mariners", "SEA"],
+    ["Los Angeles Angels", "LAA"],
+    ["Texas Rangers", "TEX"],
+
+    ["New York Yankees", "NYY"],
+    ["Baltimore Orioles", "BAL"],
+    ["Toronto Blue Jays", "TOR"],
+    ["Tampa Bay Rays", "TBR"],
+    ["Boston Red Sox", "BOS"],
+
+    ["Chicago White Sox", "CWS"],
+    ["Cleveland Guardians", "CLE"],
+    ["Detroit Tigers", "DET"],
+    ["Kansas City Royals", "KCR"],
+    ["Minnesota Twins", "MIN"],
+
+    ["San Francisco Giants", "SF"],
+    ["Los Angeles Dodgers", "LAD"],
+    ["San Diego Padres", "SD"],
+    ["Colorado Rockies", "COL"],
+    ["Arizona Diamondbacks", "ARI"],
+
+    ["New York Mets", "NYM"],
+    ["Washington Nationals", "WSH"],
+    ["Atlanta Braves", "ATL"],
+    ["Philadelphia Phillies", "PHI"],
+    ["Miami Marlins", "MIA"],
+
+    ["Milwaukee Brewers", "MIL"],
+    ["Chicago Cubs", "CHC"],
+    ["Cincinnati Reds", "CIN"],
+    ["St. Louis Cardinals", "STL"],
+    ["Pittsburgh Pirates", "PIT"]
+]);
+
 class LeagueStats extends HTMLElement {
     constructor() {
         super();
@@ -24,25 +62,35 @@ class LeagueStats extends HTMLElement {
             row.remove();
         }
         const data = this.data;
-        const otherLeaders = new Set(this.otherLeaders);
+        const otherLeaders = this.otherLeaders;
         for (let entry of data) {
             let row = table.insertRow();
-            row.innerHTML = `<td>${entry[0]}</td><td>${entry[1]}</td><td>${entry[2]}</td><td>${entry[3]}</td>`;
-            if (otherLeaders.has(entry[1] + "|" + entry[2])) {
+            row.innerHTML = `<td>${entry[0]}</td><td>${entry[1]}</td><td>${TEAM_NAMES_TO_ABBREVS.get(entry[2]) ?? entry[2]}</td><td>${entry[3]}</td>`;
+            const key = entry[1] + "|" + entry[2];
+            if (otherLeaders.has(key)) {
                 row.classList.add("otherLeader");
+                row.classList.add("otherLeader" + otherLeaders.get(key));
             }
         }
     }
+    /**
+     * @type string
+     */
     get stat() {
         return this.getAttribute('stat');
     }
+    /**
+     * @type Array<Array<string>>
+     */
     get data() {
         return JSON.parse(this.getAttribute('data'));
     }
+    /**
+     * @type Map<string, number>
+     */
     get otherLeaders() {
-        return JSON.parse(this.getAttribute('otherLeaders'));
+        return new Map(Object.entries(JSON.parse(this.getAttribute('otherLeaders'))));
     }
-
 }
 customElements.define('league-stats', LeagueStats);
 
@@ -54,34 +102,45 @@ class League extends HTMLElement {
 
     async getData(leagueName) {
         const url = `data/${leagueName}.json`;
-        const response = await fetch(url);
-        return await response.json();
+        const response = await fetch(url + "?" + Math.random());
+        const lastModified = response.headers.get("Last-Modified");
+        return {lastModified, data: await response.json()};
     }
 
     updateTable(id, jsonName, data) {
         const jsonNames = ["homeRuns", "runsBattedIn", "battingAverage"];
-        let leadersInOthers = new Set();
+        let leadersInOthers = new Map();
         for (const otherName of jsonNames) {
             if (jsonName == otherName) {
                 continue;
             }
             for (const entry of data[otherName]) {
-                leadersInOthers.add(entry[1] + "|" + entry[2]);
+                const key = entry[1] + "|" + entry[2];
+                // getOrInsert() isn't quite supported enough yet
+                let oldValue = leadersInOthers.get(key);
+                leadersInOthers.set(key, (oldValue ?? 0) + 1);
             }
         }
-        this.shadowRoot.getElementById(id).setAttribute("otherLeaders", JSON.stringify(Array.from(leadersInOthers)));
+        this.shadowRoot.getElementById(id).setAttribute("otherLeaders", JSON.stringify(Object.fromEntries(leadersInOthers)));
         this.shadowRoot.getElementById(id).setAttribute("data", JSON.stringify(data[jsonName]));
     }
 
     connectedCallback() {
-        this.shadowRoot.innerHTML = `<h1>${this.leagueName}</h1>
+        let lastModified = this.shouldShowLastModified ? '<div id="lastUpdatedDiv">Last updated: <span id="lastUpdatedSpan"></span></div>' : "";
+        this.shadowRoot.innerHTML = `
+            <link rel="stylesheet" href="statsleague.css">
+            <h1>${this.leagueName}</h1>
             <league-stats id="hr" stat="Home Runs"></league-stats>
             <league-stats id="rbi" stat="RBI"></league-stats>
-            <league-stats id="avg" stat="Batting Average"></league-stats>`;
-        this.getData(this.leagueId).then(data => {
+            <league-stats id="avg" stat="Batting Average"></league-stats>${lastModified}`;
+        this.getData(this.leagueId).then(response => {
+            const data = response.data;
             this.updateTable("hr", "homeRuns", data);
             this.updateTable("rbi", "runsBattedIn", data);
             this.updateTable("avg", "battingAverage", data);
+            if (this.shouldShowLastModified) {
+                this.shadowRoot.getElementById("lastUpdatedSpan").innerText = (new Date(response.lastModified)).toLocaleString();
+            }
         });
 
     }
@@ -91,7 +150,9 @@ class League extends HTMLElement {
     get leagueName() {
         return this.getAttribute('leagueName');
     }
- 
+    get shouldShowLastModified() {
+        return !!this.getAttribute('lastModified');
+    }
 }
 
 customElements.define('league-element', League);
