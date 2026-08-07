@@ -9,7 +9,11 @@ from pathlib import Path
 import statsapi
 
 def get_leader_data(league: str, leaderCategory: str, quiet: bool) -> list:
-    leagueId = 103 if league == 'AL' else 104
+    leagueId = None
+    if league == 'AL': 
+        leagueId = 103
+    elif league == 'NL':
+        leagueId = 104
     if not quiet:
         print(f"getting for league_id={leagueId}, leaderCategory={leaderCategory}")
     # throttle
@@ -44,7 +48,7 @@ if __name__ == '__main__':
     #meta : list = statsapi.meta('leagueLeaderTypes')
     #pp.pprint(meta)
 
-    for league in ['AL', 'NL']:
+    for league in ['AL', 'NL', 'MLB']:
         ll = LeagueLeaders(leagueName=league, quiet=True)
         ll.update()
         ll.write_to_json()
