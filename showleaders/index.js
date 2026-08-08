@@ -118,7 +118,7 @@ class League extends HTMLElement {
                 leaders.set(key, (oldValue ?? 0) + 1);
             }
         }
-
+        return leaders;
     }
 
     updateTable(id, jsonName, data, leaders) {
