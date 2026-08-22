@@ -2,6 +2,7 @@ from __future__ import annotations, division
 import datetime
 import json
 import os
+import datetime
 import time
 import sys
 from pathlib import Path
@@ -21,6 +22,13 @@ def get_leader_data(league: str, leaderCategory: str, quiet: bool) -> list:
     leaders : list = statsapi.league_leader_data(leaderCategories=leaderCategory, leagueId=leagueId, gameTypes='R', statGroup='hitting', statType='season', limit=5)
     return leaders
 
+# statsapi.get('teams', {'sportIds': 1, 'activeStatus': 'Yes', 'fields': 'teams,name,id'})['teams']p
+def get_games_left():
+    today = datetime.date.today()
+    last_day_of_year = today.replace(month=12, day=31)
+    time.sleep(0.3)
+    return len(statsapi.schedule(start_date=today.strftime('%Y-%m-%d'), end_date=last_day_of_year.strftime('%Y-%m-%d'), team=117, season=today.year))
+
 class LeagueLeaders:
     def __init__(self, leagueName: str, quiet: bool):
         self.leagueName = leagueName
@@ -36,9 +44,10 @@ class LeagueLeaders:
         data_path = Path(os.path.realpath(__file__)).parent / "data"
         return data_path / f"{self.leagueName}.json"
 
-    def write_to_json(self):
+    def write_to_json(self, games_left: int):
         file_path = self.get_json_file_path()
         os.makedirs(file_path.parent, exist_ok=True)
+        self.leaders['gamesLeft'] = games_left
         with open(file_path, 'w') as f:
             f.write(json.dumps(self.leaders))
 
@@ -48,8 +57,9 @@ if __name__ == '__main__':
     #meta : list = statsapi.meta('leagueLeaderTypes')
     #pp.pprint(meta)
 
+    games_left = get_games_left()
     for league in ['AL', 'NL', 'MLB']:
         ll = LeagueLeaders(leagueName=league, quiet=True)
         ll.update()
-        ll.write_to_json()
+        ll.write_to_json(games_left)
         #pp.pprint(ll.leaders)
