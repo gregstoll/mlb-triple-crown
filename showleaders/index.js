@@ -67,9 +67,9 @@ class LeagueStats extends HTMLElement {
             let row = table.insertRow();
             row.innerHTML = `<td>${entry[0]}</td><td>${entry[1]}</td><td>${TEAM_NAMES_TO_ABBREVS.get(entry[2]) ?? entry[2]}</td><td>${entry[3]}</td>`;
             const key = entry[1] + "|" + entry[2];
-            if (leaders.get(key) > 1) {
+            if (leaders.get(key).length > 1) {
                 row.classList.add("otherLeader");
-                row.classList.add("otherLeader" + (leaders.get(key) - 1));
+                row.classList.add("otherLeader" + (leaders.get(key).length - 1));
             }
         }
     }
@@ -115,7 +115,7 @@ class League extends HTMLElement {
                 const key = entry[1] + "|" + entry[2];
                 // getOrInsert() isn't quite supported enough yet
                 let oldValue = leaders.get(key);
-                leaders.set(key, (oldValue ?? 0) + 1);
+                leaders.set(key, (oldValue ?? []).concat([entry[0]]));
             }
         }
         return leaders;
@@ -133,6 +133,7 @@ class League extends HTMLElement {
             <link rel="stylesheet" href="statsleague.css">
             <h1>${this.leagueName}</h1>
             <p><span id="gamesLeftParent">~<span id="gamesLeft"></span></span> games left in the season</p>
+            <p id="leader" style="display: none;"><span id="leaderInner"><span id="leaderName"></span> is in the lead for the Triple Crown!</span></p>
             <league-stats id="hr" stat="Home Runs"></league-stats>
             <league-stats id="rbi" stat="RBI"></league-stats>
             <league-stats id="avg" stat="Batting Average"></league-stats>${lastModified}`;
@@ -144,6 +145,19 @@ class League extends HTMLElement {
             this.updateTable("avg", "battingAverage", data, leaders);
             if (this.shouldShowLastModified) {
                 this.shadowRoot.getElementById("lastUpdatedSpan").innerText = (new Date(response.lastModified)).toLocaleString();
+            }
+            let tripleCrownLeaders = [];
+            for (let leader of leaders.entries()) {
+                // If players are tied for first, we'll count them
+                if (leader[1].length === 3 && leader[1].every(val => val === 1)) {
+                    tripleCrownLeaders.push(leader[0].substring(0, leader[0].indexOf('|')));
+                }
+            }
+            if (tripleCrownLeaders.length) {
+                this.shadowRoot.getElementById("leaderName").innerText = tripleCrownLeaders.join(" and ");
+                this.shadowRoot.getElementById("leader").style.display = "block";
+            } else {
+                this.shadowRoot.getElementById("leader").style.display = "none";
             }
             if (!data.gamesLeft) {
                 this.shadowRoot.getElementById("gamesLeftParent").innerText = "No";

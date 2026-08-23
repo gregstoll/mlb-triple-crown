@@ -9,6 +9,12 @@ h1 {
     margin-top: 10px;
     margin-bottom: 10px;
 }
-p:has(#gamesLeftParent) {
+p {
     margin: 0px 0px;
+}
+#leaderInner {
+    background: linear-gradient(in hsl longer hue 45deg, peachpuff 0 100%);
+}
+#leaderName {
+    font-weight: bold;
 }
