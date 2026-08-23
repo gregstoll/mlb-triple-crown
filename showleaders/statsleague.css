@@ -9,6 +9,6 @@ h1 {
     margin-top: 10px;
     margin-bottom: 10px;
 }
-#gamesLeftP {
+p:has(#gamesLeftParent) {
     margin: 0px 0px;
 }

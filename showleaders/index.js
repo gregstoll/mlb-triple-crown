@@ -132,7 +132,7 @@ class League extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <link rel="stylesheet" href="statsleague.css">
             <h1>${this.leagueName}</h1>
-            <p id="gamesLeftP">~<span id="gamesLeft"></span> games left in the season</p>
+            <p><span id="gamesLeftParent">~<span id="gamesLeft"></span></span> games left in the season</p>
             <league-stats id="hr" stat="Home Runs"></league-stats>
             <league-stats id="rbi" stat="RBI"></league-stats>
             <league-stats id="avg" stat="Batting Average"></league-stats>${lastModified}`;
@@ -145,7 +145,11 @@ class League extends HTMLElement {
             if (this.shouldShowLastModified) {
                 this.shadowRoot.getElementById("lastUpdatedSpan").innerText = (new Date(response.lastModified)).toLocaleString();
             }
-            this.shadowRoot.getElementById("gamesLeft").innerText = data.gamesLeft;
+            if (!data.gamesLeft) {
+                this.shadowRoot.getElementById("gamesLeftParent").innerText = "No";
+            } else {
+                this.shadowRoot.getElementById("gamesLeft").innerText = data.gamesLeft;
+            }
         });
 
     }
